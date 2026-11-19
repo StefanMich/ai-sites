@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mental Math Master - 10-Min Daily Trainer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0fdf4',
+              500: '#22c55e',
+              600: '#16a34a',
+              700: '#15803d',
+              900: '#14532d',
+            },
+            accent: {
+              500: '#3b82f6',
+              600: '#2563eb',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      user-select: none;
+    }
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 3px;
+    }
+    .glow-brand {
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
+    }
+    .animate-bounce-short {
+      animation: bounce 0.6s ease-in-out 2;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-brand-500 selection:text-slate-950">
+
+  <!-- AUTO-ADVANCE TOAST NOTIFICATION -->
+  <div id="phaseToast" class="fixed top-20 right-4 z-50 transform translate-x-full transition-transform duration-300 ease-out bg-brand-600 text-slate-950 px-4 py-3 rounded-xl font-bold shadow-2xl flex items-center space-x-3 border border-brand-400">
+    <span class="text-xl">⚡</span>
+    <div>
+      <div id="toastTitle" class="text-sm font-extrabold uppercase">Phase Advanced!</div>
+      <div id="toastBody" class="text-xs font-semibold opacity-90">Moving to Phase 2: Targeted Strategy Drills</div>
+    </div>
+  </div>
+
+  <!-- TOP BAR / HEADER -->
+  <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <div class="bg-gradient-to-tr from-brand-600 to-accent-500 p-2 rounded-xl text-white font-bold text-lg leading-none shadow-md">
+          ∑
+        </div>
+        <div>
+          <h1 class="text-lg font-bold tracking-tight text-white flex items-center gap-2">
+            Mental Math Master
+            <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-500/10 text-brand-500 border border-brand-500/20">10-Min Routine</span>
+          </h1>
+          <p class="text-xs text-slate-400 hidden sm:block">Working Memory & Speed Building Program</p>
+        </div>
+      </div>
+
+      <!-- TIMER & AUTO-ADVANCE CONTROLS -->
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <!-- AUTO ADVANCE TOGGLE -->
+        <button id="autoAdvanceBtn" onclick="toggleAutoAdvance()" class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition bg-brand-500/10 border-brand-500/30 text-brand-400" title="Automatically advance phases at 3m and 7m">
+          <span id="autoAdvanceDot" class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+          <span>Auto-Phase: <strong id="autoAdvanceStatus">ON</strong></span>
+        </button>
+
+        <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg flex items-center space-x-3">
+          <div class="flex items-center space-x-1.5">
+            <svg class="w-4 h-4 text-accent-500 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span id="sessionTimerDisplay" class="mono text-lg font-bold text-slate-100">10:00</span>
+          </div>
+          <button id="timerToggleBtn" onclick="toggleSessionTimer()" class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-2.5 py-1 rounded transition">
+            Start
+          </button>
+        </div>
+
+        <!-- ERROR REVIEW TAB TOGGLE -->
+        <button onclick="toggleErrorDashboard()" class="relative p-2 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 rounded-lg transition" title="Error Review & Adaptive Bank">
+          <svg class="w-5 h-5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <span id="errorBadgeCount" class="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold px-1.5 py-0.2 rounded-full hidden">0</span>
+        </button>
+
+        <button onclick="toggleCustomModal()" class="p-2 text-slate-400 hover:text-white bg-slate-800/50 hover:bg-slate-800 rounded-lg transition" title="Custom Drill Settings">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTENT -->
+  <main class="max-w-5xl mx-auto w-full px-4 py-6 flex-1 flex flex-col gap-6">
+
+    <!-- PROGRAM NAVIGATION & PROGRESS BAR -->
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg glow-brand">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-accent-500">Program Progression</span>
+          <h2 id="currentWeekTitle" class="text-lg font-bold text-white">Week 1: 1-Digit × 2-Digit Decomposition</h2>
+        </div>
+        
+        <!-- PROGRAM SELECTOR TABS -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800">
+          <button onclick="selectWeek(1)" id="weekTab1" class="week-tab text-xs font-medium py-1.5 px-3 rounded-lg text-slate-400 hover:text-white transition">Week 1</button>
+          <button onclick="selectWeek(2)" id="weekTab2" class="week-tab text-xs font-medium py-1.5 px-3 rounded-lg text-slate-400 hover:text-white transition">Week 2</button>
+          <button onclick="selectWeek(3)" id="weekTab3" class="week-tab text-xs font-medium py-1.5 px-3 rounded-lg text-slate-400 hover:text-white transition">Week 3</button>
+          <button onclick="selectWeek(4)" id="weekTab4" class="week-tab text-xs font-medium py-1.5 px-3 rounded-lg text-slate-400 hover:text-white transition">Week 4</button>
+        </div>
+      </div>
+
+      <!-- 3-PHASE SESSION INDICATOR -->
+      <div class="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800">
+        <button onclick="setPhase(1)" id="phaseBtn1" class="phase-btn text-left p-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800/50 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-bold text-slate-400">Phase 1 (0-3m)</span>
+            <span class="w-2 h-2 rounded-full bg-slate-600 phase-dot"></span>
+          </div>
+          <div class="text-xs font-semibold text-slate-200 mt-0.5">Warm-up Speed</div>
+        </button>
+
+        <button onclick="setPhase(2)" id="phaseBtn2" class="phase-btn text-left p-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800/50 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-bold text-slate-400">Phase 2 (3-7m)</span>
+            <span class="w-2 h-2 rounded-full bg-slate-600 phase-dot"></span>
+          </div>
+          <div class="text-xs font-semibold text-slate-200 mt-0.5">Targeted Shortcuts</div>
+        </button>
+
+        <button onclick="setPhase(3)" id="phaseBtn3" class="phase-btn text-left p-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800/50 transition">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-bold text-slate-400">Phase 3 (7-10m)</span>
+            <span class="w-2 h-2 rounded-full bg-slate-600 phase-dot"></span>
+          </div>
+          <div class="text-xs font-semibold text-slate-200 mt-0.5">Working Memory</div>
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN DRILL INTERFACE CARD -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      
+      <!-- LEFT: CALCULATION CANVAS -->
+      <div class="lg:col-span-8 bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col justify-between min-h-[420px] relative">
+        
+        <!-- TOP TOOLBAR: HINT & METHOD BADGE -->
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center space-x-2">
+            <span id="drillTypeBadge" class="text-xs font-mono font-semibold px-3 py-1 rounded-full bg-slate-800 text-slate-300 border border-slate-700">
+              Left-to-Right Method
+            </span>
+            <span id="adaptiveTag" class="hidden text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 animate-pulse">
+              ⚠️ Missed Problem Injection
+            </span>
+          </div>
+          <button onclick="toggleHint()" class="text-xs font-medium text-accent-500 hover:text-accent-400 flex items-center space-x-1 bg-accent-500/10 border border-accent-500/20 px-2.5 py-1 rounded-lg transition">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span>Toggle Strategy Hint</span>
+          </button>
+        </div>
+
+        <!-- HINT BOX (HIDDEN BY DEFAULT) -->
+        <div id="hintBox" class="hidden my-3 p-3 bg-slate-950 border border-accent-500/30 rounded-xl text-xs text-slate-300 leading-relaxed">
+          <span class="font-bold text-accent-500 uppercase tracking-wide">Strategy Guide: </span>
+          <span id="hintText">Break numbers down starting from the tens place. Compute 40 × 6, store 240, then add 7 × 6.</span>
+        </div>
+
+        <!-- PROBLEM DISPLAY -->
+        <div class="my-auto text-center py-6">
+          <div id="problemDisplay" class="mono text-5xl sm:text-6xl font-extrabold tracking-wider text-white mb-6">
+            47 × 6
+          </div>
+
+          <!-- INPUT FORM -->
+          <form onsubmit="submitAnswer(event)" class="max-w-xs mx-auto">
+            <div class="relative">
+              <input type="number" id="answerInput" placeholder="?" autocomplete="off" autofocus
+                class="mono text-center text-3xl font-bold bg-slate-950 border-2 border-slate-700 focus:border-brand-500 text-white rounded-2xl w-full py-3 px-4 outline-none transition shadow-inner">
+              <button type="submit" class="absolute right-2 top-2 bottom-2 bg-brand-600 hover:bg-brand-500 text-slate-950 font-bold px-4 rounded-xl transition flex items-center justify-center">
+                ↵
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- SUB-VOCALIZATION / MEMORY ANCHOR DISPLAY -->
+        <div id="memoryAnchorCard" class="mt-4 bg-slate-950/70 border border-slate-800 rounded-xl p-3 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <span class="flex h-2 w-2 relative">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-500 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
+            </span>
+            <span class="text-xs font-semibold text-slate-400">Speech Memory Buffer:</span>
+          </div>
+          <div id="speechAnchorText" class="mono text-xs font-bold text-brand-500">
+            Say aloud: "Hold 240"
+          </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT: LIVE FEEDBACK & TACTILE KEYPAD -->
+      <div class="lg:col-span-4 flex flex-col gap-6">
+        
+        <!-- STEP-BY-STEP BREAKDOWN PANEL -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-lg min-h-[220px]">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 flex items-center justify-between">
+            <span>Left-to-Right Step Breakdown</span>
+            <span id="feedbackBadge" class="hidden px-2 py-0.5 text-[10px] font-bold rounded">CORRECT</span>
+          </h3>
+          
+          <div id="stepBreakdownContainer" class="space-y-2 text-xs font-mono text-slate-300">
+            <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-slate-500">Step 1:</span> Solve highest digit place first.
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-slate-500">Step 2:</span> Calculate remaining units.
+            </div>
+            <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800">
+              <span class="text-slate-500">Step 3:</span> Add stored running total.
+            </div>
+          </div>
+        </div>
+
+        <!-- ON-SCREEN KEYPAD (FOR TOUCH/MOBILE) -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-3 shadow-lg">
+          <div class="grid grid-cols-3 gap-2">
+            <button onclick="appendNum(7)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">7</button>
+            <button onclick="appendNum(8)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">8</button>
+            <button onclick="appendNum(9)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">9</button>
+            <button onclick="appendNum(4)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">4</button>
+            <button onclick="appendNum(5)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">5</button>
+            <button onclick="appendNum(6)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">6</button>
+            <button onclick="appendNum(1)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">1</button>
+            <button onclick="appendNum(2)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">2</button>
+            <button onclick="appendNum(3)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">3</button>
+            <button onclick="clearInput()" class="bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 font-bold py-2.5 rounded-xl text-sm transition active:scale-95">CLR</button>
+            <button onclick="appendNum(0)" class="bg-slate-800 hover:bg-slate-700 text-white font-bold py-2.5 rounded-xl text-lg transition active:scale-95">0</button>
+            <button onclick="submitAnswer(event)" class="bg-brand-600 hover:bg-brand-500 text-slate-950 font-bold py-2.5 rounded-xl text-sm transition active:scale-95">GO</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- STATS DASHBOARD STRIP -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400">Total Solved</span>
+        <div id="statTotal" class="mono text-2xl font-bold text-white mt-1">0</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400">Accuracy Rate</span>
+        <div id="statAccuracy" class="mono text-2xl font-bold text-brand-500 mt-1">100%</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400">Avg Time / Problem</span>
+        <div id="statAvgTime" class="mono text-2xl font-bold text-accent-500 mt-1">0.0s</div>
+      </div>
+      <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+        <span class="text-[10px] uppercase font-bold text-slate-400">Current Streak</span>
+        <div id="statStreak" class="mono text-2xl font-bold text-amber-400 mt-1">0 🔥</div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- SMART ERROR REVIEW DASHBOARD MODAL -->
+  <div id="errorDashboardModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[85vh]">
+      <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+        <div>
+          <h3 class="text-lg font-bold text-white flex items-center gap-2">
+            <span>Adaptive Error Bank</span>
+            <span id="errorBankHeaderBadge" class="text-xs bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded-full font-bold">0 Logged</span>
+          </h3>
+          <p class="text-xs text-slate-400 mt-0.5">Missed calculations are automatically injected into session warm-ups until mastered.</p>
+        </div>
+        <button onclick="toggleErrorDashboard()" class="text-slate-400 hover:text-white p-1">✕</button>
+      </div>
+
+      <!-- ERROR BANK CONTENT -->
+      <div id="errorBankList" class="my-4 overflow-y-auto space-y-3 flex-1 pr-1">
+        <!-- Dynamic error items populated here -->
+      </div>
+
+      <!-- BOTTOM ACTIONS -->
+      <div class="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
+        <button onclick="clearErrorBank()" class="text-xs text-slate-400 hover:text-rose-400 transition">
+          Clear Error History
+        </button>
+        <button onclick="startErrorDrillMode()" id="practiceErrorsBtn" class="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs px-4 py-2.5 rounded-xl transition">
+          Practice Missed Mistakes Only
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM DRILL CONFIG MODAL -->
+  <div id="customModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-bold text-white">Custom Drill Settings</h3>
+        <button onclick="toggleCustomModal()" class="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div class="space-y-4 text-sm">
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Select Operations</label>
+          <select id="customOpSelect" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-200 outline-none">
+            <option value="mult_1d_2d">1-Digit × 2-Digit Multiplication</option>
+            <option value="mult_2d_2d">2-Digit × 2-Digit Multiplication</option>
+            <option value="div_factor">Factor Division (÷6, ÷8, ÷12)</option>
+            <option value="near_round">Near-Round Shortcuts (×19, ×29, ×48)</option>
+            <option value="double_halve">Doubling & Halving (×5, ×15, ×20)</option>
+            <option value="squares">Perfect Squares (11² - 25²)</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-medium text-slate-300 mb-1">Digit Factor Ranges</label>
+          <div class="grid grid-cols-2 gap-2">
+            <input type="number" id="rangeMin" value="2" class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center text-white" placeholder="Min">
+            <input type="number" id="rangeMax" value="99" class="bg-slate-950 border border-slate-800 rounded-xl p-2 text-center text-white" placeholder="Max">
+          </div>
+        </div>
+
+        <button onclick="applyCustomConfig()" class="w-full bg-brand-600 hover:bg-brand-500 text-slate-950 font-bold py-3 rounded-xl transition">
+          Apply Custom Drill
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION LOGIC -->
+  <script>
+    // APP STATE
+    let state = {
+      currentWeek: 1,
+      currentPhase: 1,
+      currentProblem: null,
+      customMode: false,
+      errorOnlyMode: false,
+      autoAdvance: true,
+      customOp: 'mult_1d_2d',
+      stats: {
+        total: 0,
+        correct: 0,
+        streak: 0,
+        times: []
+      },
+      timer: {
+        secondsLeft: 600,
+        interval: null,
+        isRunning: false
+      },
+      errorBank: [], // Loaded from localStorage
+      problemStartTime: 0
+    };
+
+    const PROGRAM_CONFIGS = {
+      1: {
+        title: "Week 1: 1-Digit × 2-Digit Decomposition",
+        phase1: "Tables Warmup (1-9)",
+        phase2: "Decomposition (e.g. 34 × 6)",
+        phase3: "Left-to-Right Memory Laddering"
+      },
+      2: {
+        title: "Week 2: Factor Division & Laddering",
+        phase1: "Division Tables Warmup",
+        phase2: "Factor Division (e.g. 84 ÷ 6)",
+        phase3: "2-Digit × 1-Digit Mental Laddering"
+      },
+      3: {
+        title: "Week 3: Near-Round & Doubling/Halving Shortcuts",
+        phase1: "Rapid Multiplication Checks",
+        phase2: "Shortcuts: Near-Round & Double/Halve",
+        phase3: "100% Mental Mixed Flash Drills"
+      },
+      4: {
+        title: "Week 4: 2-Digit Mechanics & Perfect Squares",
+        phase1: "Perfect Squares Warmup (11² - 20²)",
+        phase2: "2-Digit Expansion (14 × 12)",
+        phase3: "Mixed Rapid 2-Digit Calculations"
+      }
+    };
+
+    // INITIALIZATION & LOCALSTORAGE RECOVERY
+    window.onload = function() {
+      loadErrorBank();
+      selectWeek(1);
+      setPhase(1);
+      document.getElementById('answerInput').focus();
+    };
+
+    function loadErrorBank() {
+      try {
+        const saved = localStorage.getItem('mmm_error_bank');
+        if (saved) {
+          state.errorBank = JSON.parse(saved);
+        }
+      } catch (e) {
+        state.errorBank = [];
+      }
+      updateErrorBadge();
+    }
+
+    function saveErrorBank() {
+      try {
+        localStorage.setItem('mmm_error_bank', JSON.stringify(state.errorBank));
+      } catch (e) {}
+      updateErrorBadge();
+    }
+
+    function updateErrorBadge() {
+      const badge = document.getElementById('errorBadgeCount');
+      if (state.errorBank.length > 0) {
+        badge.innerText = state.errorBank.length;
+        badge.classList.remove('hidden');
+      } else {
+        badge.classList.add('hidden');
+      }
+      document.getElementById('errorBankHeaderBadge').innerText = `${state.errorBank.length} Logged`;
+    }
+
+    // AUTO ADVANCE TOGGLE
+    function toggleAutoAdvance() {
+      state.autoAdvance = !state.autoAdvance;
+      const statusText = document.getElementById('autoAdvanceStatus');
+      const dot = document.getElementById('autoAdvanceDot');
+      const btn = document.getElementById('autoAdvanceBtn');
+
+      if (state.autoAdvance) {
+        statusText.innerText = "ON";
+        dot.className = "w-2 h-2 rounded-full bg-brand-500 animate-pulse";
+        btn.className = "hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition bg-brand-500/10 border-brand-500/30 text-brand-400";
+      } else {
+        statusText.innerText = "OFF";
+        dot.className = "w-2 h-2 rounded-full bg-slate-500";
+        btn.className = "hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition bg-slate-800/50 border-slate-700 text-slate-400";
+      }
+    }
+
+    // TIMER & AUTO-PHASE MANAGEMENT
+    function toggleSessionTimer() {
+      const btn = document.getElementById('timerToggleBtn');
+      if (state.timer.isRunning) {
+        clearInterval(state.timer.interval);
+        state.timer.isRunning = false;
+        btn.innerText = "Resume";
+      } else {
+        state.timer.isRunning = true;
+        btn.innerText = "Pause";
+        state.timer.interval = setInterval(updateTimerDisplay, 1000);
+      }
+    }
+
+    function updateTimerDisplay() {
+      if (state.timer.secondsLeft <= 0) {
+        clearInterval(state.timer.interval);
+        state.timer.isRunning = false;
+        showToast("Session Complete!", "Great job completing your 10-minute mental math routine.");
+        return;
+      }
+
+      state.timer.secondsLeft--;
+      const mins = Math.floor(state.timer.secondsLeft / 60);
+      const secs = state.timer.secondsLeft % 60;
+      document.getElementById('sessionTimerDisplay').innerText = 
+        `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+      // AUTO ADVANCE LOGIC AT 3 MINS AND 7 MINS
+      if (state.autoAdvance) {
+        if (state.timer.secondsLeft === 420 && state.currentPhase !== 2) { // 3:00 passed -> Phase 2
+          setPhase(2);
+          showToast("Phase 2: Strategy Drills", "Auto-advanced! Focus on targeted mental shortcuts.");
+        } else if (state.timer.secondsLeft === 180 && state.currentPhase !== 3) { // 7:00 passed -> Phase 3
+          setPhase(3);
+          showToast("Phase 3: Working Memory", "Auto-advanced! Pure working memory laddering.");
+        }
+      }
+    }
+
+    function showToast(title, body) {
+      const toast = document.getElementById('phaseToast');
+      document.getElementById('toastTitle').innerText = title;
+      document.getElementById('toastBody').innerText = body;
+      toast.classList.remove('translate-x-full');
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+      }, 4000);
+    }
+
+    // WEEK & PHASE NAVIGATION
+    function selectWeek(weekNum) {
+      state.currentWeek = weekNum;
+      state.customMode = false;
+      state.errorOnlyMode = false;
+      document.querySelectorAll('.week-tab').forEach((el, idx) => {
+        if (idx + 1 === weekNum) {
+          el.className = "week-tab text-xs font-semibold py-1.5 px-3 rounded-lg bg-brand-600 text-slate-950 transition shadow";
+        } else {
+          el.className = "week-tab text-xs font-medium py-1.5 px-3 rounded-lg text-slate-400 hover:text-white transition";
+        }
+      });
+      document.getElementById('currentWeekTitle').innerText = PROGRAM_CONFIGS[weekNum].title;
+      generateProblem();
+    }
+
+    function setPhase(phaseNum) {
+      state.currentPhase = phaseNum;
+      document.querySelectorAll('.phase-btn').forEach((btn, idx) => {
+        const dot = btn.querySelector('.phase-dot');
+        if (idx + 1 === phaseNum) {
+          btn.className = "phase-btn text-left p-2.5 rounded-xl border border-brand-500/50 bg-brand-500/10 transition";
+          dot.className = "w-2 h-2 rounded-full bg-brand-500 phase-dot";
+        } else {
+          btn.className = "phase-btn text-left p-2.5 rounded-xl border border-slate-800 bg-slate-950 hover:bg-slate-800/50 transition";
+          dot.className = "w-2 h-2 rounded-full bg-slate-600 phase-dot";
+        }
+      });
+      generateProblem();
+    }
+
+    // PROBLEM GENERATION ENGINE (WITH ADAPTIVE ERROR INJECTION)
+    function generateProblem() {
+      let problem = null;
+      let isAdaptive = false;
+
+      // 30% CHANCE TO DRAW FROM ERROR BANK IF AVAILABLE
+      if (!state.customMode && state.errorBank.length > 0 && (Math.random() < 0.35 || state.errorOnlyMode)) {
+        const errIndex = Math.floor(Math.random() * state.errorBank.length);
+        const errItem = state.errorBank[errIndex];
+        problem = Object.assign({}, errItem);
+        problem.isFromErrorBank = true;
+        isAdaptive = true;
+      } else if (state.customMode) {
+        problem = generateCustomProblem();
+      } else if (state.currentPhase === 1) {
+        // WARM-UP DRILLS
+        if (state.currentWeek === 4) {
+          const base = Math.floor(Math.random() * 10) + 11; // 11-20
+          problem = {
+            num1: base, num2: base, op: '²', answer: base * base,
+            hint: `Square recall: ${base} × ${base}.`,
+            steps: [
+              `Step 1: Compute (${base - (base%10)} × ${base + (base%10)}) + ${(base%10)}²`,
+              `Step 2: Base square result = ${base * base}`
+            ],
+            anchor: `Recall: ${base} squared`
+          };
+        } else {
+          const a = Math.floor(Math.random() * 8) + 2;
+          const b = Math.floor(Math.random() * 8) + 2;
+          problem = {
+            num1: a, num2: b, op: '×', answer: a * b,
+            hint: "Single-digit multiplication speed check.",
+            steps: [`Instant recall: ${a} × ${b} = ${a * b}`],
+            anchor: `Direct recall`
+          };
+        }
+      } else {
+        // TARGETED DRILLS (PHASE 2 & 3)
+        switch(state.currentWeek) {
+          case 1:
+            const single = Math.floor(Math.random() * 7) + 3;
+            const double = Math.floor(Math.random() * 80) + 12;
+            const tens = Math.floor(double / 10) * 10;
+            const units = double % 10;
+            problem = {
+              num1: double, num2: single, op: '×', answer: double * single,
+              hint: `Decompose ${double} into ${tens} + ${units}. Calculate Left-to-Right.`,
+              steps: [
+                `Step 1: ${tens} × ${single} = ${tens * single}`,
+                `Step 2: ${units} × ${single} = ${units * single}`,
+                `Step 3: Add ${tens * single} + ${units * single} = ${double * single}`
+              ],
+              anchor: `Say aloud: "Hold ${tens * single}"`
+            };
+            break;
+
+          case 2:
+            const divisor = [6, 8, 12][Math.floor(Math.random() * 3)];
+            const quotient = Math.floor(Math.random() * 15) + 4;
+            const dividend = divisor * quotient;
+            let steps = [];
+            if (divisor === 6) {
+              steps = [`Step 1: ${dividend} ÷ 2 = ${dividend / 2}`, `Step 2: ${dividend / 2} ÷ 3 = ${quotient}`];
+            } else if (divisor === 8) {
+              steps = [`Step 1: ${dividend} ÷ 2 = ${dividend / 2}`, `Step 2: ${dividend / 2} ÷ 2 = ${dividend / 4}`, `Step 3: ${dividend / 4} ÷ 2 = ${quotient}`];
+            } else {
+              steps = [`Step 1: ${dividend} ÷ 3 = ${dividend / 3}`, `Step 2: ${dividend / 3} ÷ 4 = ${quotient}`];
+            }
+            problem = {
+              num1: dividend, num2: divisor, op: '÷', answer: quotient,
+              hint: `Factor division for ÷${divisor}.`,
+              steps: steps,
+              anchor: `Divide step-by-step`
+            };
+            break;
+
+          case 3:
+            const isNearRound = Math.random() > 0.5;
+            if (isNearRound) {
+              const baseTens = (Math.floor(Math.random() * 4) + 2) * 10;
+              const nearVal = baseTens - 1;
+              const mult = Math.floor(Math.random() * 6) + 3;
+              problem = {
+                num1: nearVal, num2: mult, op: '×', answer: nearVal * mult,
+                hint: `Use Near-Round: (${baseTens} × ${mult}) - ${mult}.`,
+                steps: [
+                  `Step 1: ${baseTens} × ${mult} = ${baseTens * mult}`,
+                  `Step 2: Subtract 1 × ${mult} = ${mult}`,
+                  `Step 3: ${baseTens * mult} - ${mult} = ${nearVal * mult}`
+                ],
+                anchor: `Say aloud: "Hold ${baseTens * mult}"`
+              };
+            } else {
+              const evenVal = (Math.floor(Math.random() * 10) + 4) * 2;
+              problem = {
+                num1: evenVal, num2: 5, op: '×', answer: evenVal * 5,
+                hint: `Use Doubling & Halving: Halve ${evenVal}, Double 5.`,
+                steps: [`Step 1: Halve ${evenVal} → ${evenVal / 2}`, `Step 2: Double 5 → 10`, `Step 3: ${evenVal / 2} × 10 = ${evenVal * 5}`],
+                anchor: `Double/Halve shortcut`
+              };
+            }
+            break;
+
+          case 4:
+            const n1 = Math.floor(Math.random() * 8) + 11;
+            const n2 = Math.floor(Math.random() * 8) + 11;
+            problem = {
+              num1: n1, num2: n2, op: '×', answer: n1 * n2,
+              hint: `Expand tens: (${n1} × 10) + (${n1} × ${n2 % 10}).`,
+              steps: [
+                `Step 1: ${n1} × 10 = ${n1 * 10}`,
+                `Step 2: ${n1} × ${n2 % 10} = ${n1 * (n2 % 10)}`,
+                `Step 3: Add ${n1 * 10} + ${n1 * (n2 % 10)} = ${n1 * n2}`
+              ],
+              anchor: `Say aloud: "Hold ${n1 * 10}"`
+            };
+            break;
+        }
+      }
+
+      state.currentProblem = problem;
+      state.problemStartTime = Date.now();
+
+      // Show/Hide adaptive tag indicator
+      const adaptiveTag = document.getElementById('adaptiveTag');
+      if (isAdaptive) {
+        adaptiveTag.classList.remove('hidden');
+      } else {
+        adaptiveTag.classList.add('hidden');
+      }
+
+      renderProblem();
+    }
+
+    function generateCustomProblem() {
+      const a = Math.floor(Math.random() * 20) + 5;
+      const b = Math.floor(Math.random() * 9) + 2;
+      return {
+        num1: a, num2: b, op: '×', answer: a * b,
+        hint: `Custom Drill: Left-to-Right decomposition`,
+        steps: [`${Math.floor(a/10)*10} × ${b} = ${Math.floor(a/10)*10*b}`, `${a%10} × ${b} = ${(a%10)*b}`, `Total = ${a*b}`],
+        anchor: `Hold intermediate sum`
+      };
+    }
+
+    function renderProblem() {
+      const p = state.currentProblem;
+      const displayStr = p.op === '²' ? `${p.num1}²` : `${p.num1} ${p.op} ${p.num2}`;
+      document.getElementById('problemDisplay').innerText = displayStr;
+      document.getElementById('hintText').innerText = p.hint;
+      document.getElementById('speechAnchorText').innerText = p.anchor;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('drillTypeBadge').innerText = `${PROGRAM_CONFIGS[state.currentWeek].phase2}`;
+
+      const container = document.getElementById('stepBreakdownContainer');
+      container.innerHTML = `
+        <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-slate-400">
+          Solve mentally using Left-to-Right logic...
+        </div>
+      `;
+      document.getElementById('feedbackBadge').className = "hidden";
+    }
+
+    // SUBMIT ANSWER & LOG ERRORS
+    function submitAnswer(e) {
+      if (e) e.preventDefault();
+      const input = document.getElementById('answerInput');
+      const val = parseInt(input.value);
+      if (isNaN(val)) return;
+
+      const elapsed = (Date.now() - state.problemStartTime) / 1000;
+      const isCorrect = val === state.currentProblem.answer;
+
+      state.stats.total++;
+      if (isCorrect) {
+        state.stats.correct++;
+        state.stats.streak++;
+        state.stats.times.push(elapsed);
+        showFeedback(true);
+
+        // REMOVE FROM ERROR BANK IF MASTERED
+        if (state.currentProblem.isFromErrorBank) {
+          removeMasteredError(state.currentProblem);
+        }
+      } else {
+        state.stats.streak = 0;
+        showFeedback(false);
+
+        // LOG TO ERROR BANK
+        logProblemError(state.currentProblem);
+      }
+
+      updateStatsDisplay();
+      setTimeout(generateProblem, isCorrect ? 800 : 2200);
+    }
+
+    function logProblemError(prob) {
+      const pSignature = prob.op === '²' ? `${prob.num1}²` : `${prob.num1} ${prob.op} ${prob.num2}`;
+      const existing = state.errorBank.find(e => {
+        const sig = e.op === '²' ? `${e.num1}²` : `${e.num1} ${e.op} ${e.num2}`;
+        return sig === pSignature;
+      });
+
+      if (existing) {
+        existing.failCount = (existing.failCount || 1) + 1;
+        existing.lastMissed = new Date().toLocaleDateString();
+      } else {
+        state.errorBank.push({
+          num1: prob.num1,
+          num2: prob.num2,
+          op: prob.op,
+          answer: prob.answer,
+          hint: prob.hint,
+          steps: prob.steps,
+          anchor: prob.anchor,
+          failCount: 1,
+          lastMissed: new Date().toLocaleDateString()
+        });
+      }
+      saveErrorBank();
+    }
+
+    function removeMasteredError(prob) {
+      const pSignature = prob.op === '²' ? `${prob.num1}²` : `${prob.num1} ${prob.op} ${prob.num2}`;
+      state.errorBank = state.errorBank.filter(e => {
+        const sig = e.op === '²' ? `${e.num1}²` : `${e.num1} ${e.op} ${e.num2}`;
+        return sig !== pSignature;
+      });
+      saveErrorBank();
+    }
+
+    function showFeedback(isCorrect) {
+      const badge = document.getElementById('feedbackBadge');
+      badge.classList.remove('hidden');
+      if (isCorrect) {
+        badge.className = "px-2 py-0.5 text-[10px] font-bold rounded bg-brand-500/20 text-brand-500 border border-brand-500/30";
+        badge.innerText = "CORRECT";
+      } else {
+        badge.className = "px-2 py-0.5 text-[10px] font-bold rounded bg-rose-500/20 text-rose-500 border border-rose-500/30";
+        badge.innerText = `INCORRECT (${state.currentProblem.answer})`;
+      }
+
+      const container = document.getElementById('stepBreakdownContainer');
+      container.innerHTML = state.currentProblem.steps.map(s => `
+        <div class="p-2.5 bg-slate-950 rounded-lg border border-slate-800 text-slate-200">
+          ${s}
+        </div>
+      `).join('');
+    }
+
+    function updateStatsDisplay() {
+      document.getElementById('statTotal').innerText = state.stats.total;
+      const accuracy = state.stats.total === 0 ? 100 : Math.round((state.stats.correct / state.stats.total) * 100);
+      document.getElementById('statAccuracy').innerText = `${accuracy}%`;
+      
+      const avg = state.stats.times.length === 0 ? 0 : (state.stats.times.reduce((a,b)=>a+b,0) / state.stats.times.length).toFixed(1);
+      document.getElementById('statAvgTime').innerText = `${avg}s`;
+      document.getElementById('statStreak').innerText = `${state.stats.streak} 🔥`;
+    }
+
+    // ERROR REVIEW DASHBOARD CONTROLS
+    function toggleErrorDashboard() {
+      const modal = document.getElementById('errorDashboardModal');
+      modal.classList.toggle('hidden');
+      if (!modal.classList.contains('hidden')) {
+        renderErrorBankList();
+      }
+    }
+
+    function renderErrorBankList() {
+      const list = document.getElementById('errorBankList');
+      if (state.errorBank.length === 0) {
+        list.innerHTML = `
+          <div class="text-center py-8 text-slate-500 text-xs">
+            🎉 No logged errors! You've mastered all calculations in your bank.
+          </div>
+        `;
+        document.getElementById('practiceErrorsBtn').classList.add('hidden');
+        return;
+      }
+
+      document.getElementById('practiceErrorsBtn').classList.remove('hidden');
+      list.innerHTML = state.errorBank.map((item, idx) => {
+        const sig = item.op === '²' ? `${item.num1}²` : `${item.num1} ${item.op} ${item.num2}`;
+        return `
+          <div class="bg-slate-950 border border-slate-800 rounded-xl p-3.5 flex items-center justify-between">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="mono text-base font-bold text-white">${sig} = ${item.answer}</span>
+                <span class="text-[10px] bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-md font-semibold">Missed ${item.failCount}x</span>
+              </div>
+              <div class="text-xs text-slate-400 mt-1">${item.hint}</div>
+            </div>
+            <button onclick="removeErrorIndex(${idx})" class="text-slate-500 hover:text-rose-400 text-xs font-bold p-1">
+              ✕
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function removeErrorIndex(idx) {
+      state.errorBank.splice(idx, 1);
+      saveErrorBank();
+      renderErrorBankList();
+    }
+
+    function clearErrorBank() {
+      if (confirm("Are you sure you want to clear your error bank history?")) {
+        state.errorBank = [];
+        saveErrorBank();
+        renderErrorBankList();
+      }
+    }
+
+    function startErrorDrillMode() {
+      if (state.errorBank.length === 0) return;
+      state.errorOnlyMode = true;
+      toggleErrorDashboard();
+      showToast("Error Drill Activated", "Practicing logged mistakes until mastered.");
+      generateProblem();
+    }
+
+    // INPUT HELPERS
+    function appendNum(num) {
+      const input = document.getElementById('answerInput');
+      input.value += num;
+    }
+
+    function clearInput() {
+      document.getElementById('answerInput').value = '';
+    }
+
+    function toggleHint() {
+      document.getElementById('hintBox').classList.toggle('hidden');
+    }
+
+    function toggleCustomModal() {
+      document.getElementById('customModal').classList.toggle('hidden');
+    }
+
+    function applyCustomConfig() {
+      state.customMode = true;
+      state.customOp = document.getElementById('customOpSelect').value;
+      toggleCustomModal();
+      generateProblem();
+    }
+  </script>
+</body>
+</html>
